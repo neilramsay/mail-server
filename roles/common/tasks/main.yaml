@@ -6,5 +6,11 @@
 #   ansible.builtin.include_tasks:
 #     file: "{{ item }}"
 
-- name: 
+- name: Core Apt Updates
   ansible.builtin.import_tasks: apt.yaml
+
+- name: Install Fish
+  ansible.builtin.import_tasks: shell.yaml
+
+- name: SystemD
+  ansible.builtin.import_tasks: systemd-user.yaml
