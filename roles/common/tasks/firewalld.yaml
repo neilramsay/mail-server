@@ -1,0 +1,6 @@
+- name: FirewallD SSH
+  ansible.posix.firewalld:
+    service: ssh
+    zone: public
+    state: present
+    # permanent: true

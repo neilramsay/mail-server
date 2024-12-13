@@ -15,3 +15,13 @@
       - snapd
     state: absent
     autoremove: true
+
+- name: Install Common Packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - fish
+      - firewalld
+      - python3-firewall
+      - sshguard
+    state: present
