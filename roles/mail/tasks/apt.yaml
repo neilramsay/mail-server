@@ -1,0 +1,17 @@
+- name: Install Postfix and Dovecot
+  become: true
+  ansible.builtin.apt:
+    name:
+      - postfix
+      - postfix-doc
+      - postfix-pcre
+      - postfix-pgsql
+      - dovecot-core
+      - dovecot-imapd
+      # - dovecot-antispam
+      - dovecot-lmtpd
+      - dovecot-managesieved
+      - dovecot-pgsql
+      - dovecot-sieve
+      - rspamd
+    state: present
