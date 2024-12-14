@@ -1,0 +1,8 @@
+- name: Change SSHGuard to FirewallD
+  become: true
+  ansible.builtin.replace:
+    path: /etc/sshguard/sshguard.conf
+    regexp: ^BACKEND=".+"$
+    replace: BACKEND="/usr/libexec/sshguard/sshg-fw-firewalld"
+    backup: true
+  notify: Restart SSHGuard

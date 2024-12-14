@@ -17,3 +17,6 @@
 
 - name: FirewallD
   ansible.builtin.import_tasks: firewalld.yaml
+
+- name: SSH Guard
+  ansible.builtin.import_tasks: sshguard.yaml
