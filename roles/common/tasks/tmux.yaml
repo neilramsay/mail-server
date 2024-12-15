@@ -1,0 +1,43 @@
+- name: Tmux Plugin
+  ansible.builtin.copy:
+    src: tmux.conf
+    dest: "{{ ansible_facts.user_dir }}/.tmux.conf"
+    mode: u=rw,g=rw,o=r
+    owner: "{{ ansible_facts.user_id }}"
+    group: "{{ ansible_facts.user_gid }}"
+
+- name: Check if Tmux Powerline config exists
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh"
+  register: tmux_powerline_conf
+
+- name: Generate Tmux Powerline default config
+  ansible.builtin.command:
+    cmd: "{{ ansible_facts.user_dir }}/.tmux/plugins/tmux-powerline/generate_config.sh"
+    creates: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh.default"
+  when: not tmux_powerline_conf.stat.exists
+
+- name: Copy Tmux Powerline default config
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh.default"
+    dest: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh"
+    mode: u=rw,g=rw,o=r
+  when: not tmux_powerline_conf.stat.exists
+
+- name: Customise Tmux Powerline Segments
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh"
+    line: |
+      # Local Overrides
+
+      export TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
+        "tmux_session_info 148 234"
+      )
+
+      export TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS=(
+        "tmux_mem_cpu_load 234 136"
+        "date_day 235 136"
+        "date 235 136 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
+        "time 235 136 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
+      )

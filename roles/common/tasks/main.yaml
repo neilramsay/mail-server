@@ -20,3 +20,6 @@
 
 - name: SSH Guard
   ansible.builtin.import_tasks: sshguard.yaml
+
+- name: Tmux
+  ansible.builtin.import_tasks: tmux.yaml
