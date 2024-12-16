@@ -1,0 +1,87 @@
+- name: Rspamd Redis Config
+  become: true
+  ansible.builtin.copy:
+    src: rspamd/redis.conf
+    dest: /etc/rspamd/local.d/
+    mode: u=rw,g=rw,o=r
+  notify:
+    - "mail : Restart Rspamd"
+
+- name: Rspamd DKIM Signing
+  become: true
+  ansible.builtin.copy:
+    src: rspamd/dkim_signing.conf
+    dest: /etc/rspamd/local.d/
+    mode: u=rw,g=rw,o=r
+  notify:
+    - "mail : Restart Rspamd"
+
+- name: Rspamd Worker Proxy
+  become: true
+  ansible.builtin.copy:
+    src: rspamd/worker-proxy.inc
+    dest: /etc/rspamd/local.d/
+    mode: u=rw,g=rw,o=r
+  notify:
+    - "mail : Restart Rspamd"
+
+- name: Generate DKIM Key
+  ansible.builtin.command:
+    argv:
+      - rspamadm
+      - dkim_keygen
+      - --domain
+      - examplehost.example.com
+    creates: /var/lib/rspamd/dkim/examplehost.example.com.dkim.key
+  register: rspamd_generate_dkim
+
+- name: Make DKIM Directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/rspamd/dkim
+    mode: u=rwx,g=rwx,o=
+    owner: _rspamd
+    group: _rspamd
+    state: directory
+
+- name: Write DKIM Key
+  become: true
+  ansible.builtin.copy:
+    dest: /var/lib/rspamd/dkim/examplehost.example.com.dkim.key
+    mode: u=rw,g=rw,o=
+    owner: _rspamd
+    group: _rspamd
+    content: "{{ rspamd_generate_dkim.stdout }}"
+
+- name: RSpamd Proxy Service
+  become: true
+  ansible.builtin.copy:
+    src: rspamd_proxy_service/rspamd-postfix-proxy.service
+    dest: /etc/systemd/system/
+    mode: u=rw,g=rw,o=r
+    owner: root
+    group: root
+
+- name: RSpamd Proxy Socket
+  become: true
+  ansible.builtin.copy:
+    src: rspamd_proxy_service/rspamd-postfix-proxy.socket
+    dest: /etc/systemd/system/
+    mode: u=rw,g=rw,o=r
+    owner: root
+    group: root
+
+- name: Enable Rspamd Proxy Socket
+  become: true
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - enable
+      - rspamd-postfix-proxy.socket
+    creates: /etc/systemd/system/sockets.target.wants/rspamd-postfix-proxy.socket
+
+- name: Start Rspamd Proxy Socket
+  become: true
+  ansible.builtin.systemd:
+    name: rspamd-postfix-proxy.socket
+    state: started

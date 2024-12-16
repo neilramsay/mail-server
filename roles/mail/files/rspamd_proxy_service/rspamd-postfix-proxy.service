@@ -1,0 +1,12 @@
+[Unit]
+Description=Rspamd-proxy socket for Postfix
+Requires=rspamd.service
+After=rspamd.service
+Requires=rspamd-postfix-proxy.socket
+After=rspamd-postfix-proxy.socket
+
+[Service]
+Type=notify
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd /var/lib/rspamd/rspamd-proxy.sock
+PrivateTmp=yes
+PrivateNetwork=yes

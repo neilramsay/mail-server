@@ -1,0 +1,11 @@
+- name: Restart Rspamd
+  become: true
+  ansible.builtin.service:
+    name: rspamd.service
+    state: restarted
+
+- name: Restart Dovecot
+  become: true
+  ansible.builtin.service:
+    name: dovecot.service
+    state: restarted

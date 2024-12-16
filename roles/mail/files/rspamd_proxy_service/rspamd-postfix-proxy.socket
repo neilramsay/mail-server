@@ -1,0 +1,10 @@
+[Unit]
+Description=Rspamd-proxy socket for Postfix
+
+[Socket]
+ListenStream=/var/spool/postfix/private/rspamd-proxy.socket
+SocketUser=postfix
+SocketGroup=postfix
+
+[Install]
+WantedBy=sockets.target

@@ -1,2 +1,8 @@
 - name: Install Packages
   ansible.builtin.import_tasks: apt.yaml
+
+- name: Update FirewallD
+  ansible.builtin.import_tasks: firewalld.yaml
+
+- name: RSpamd
+  ansible.builtin.import_tasks: rspamd.yaml
