@@ -1,0 +1,50 @@
+- name: Create Mail Directories
+  become: true
+  loop:
+    - /var/mail/virtual
+    - /var/mail/virtual/conf.d/
+    - /var/mail/virtual/conf.d/example.com
+    - /var/mail/virtual/example.com
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: u=rwx,g=rwx,o=
+    owner: dovecot # TODO
+    group: dovecot # TODO
+    state: directory
+
+# - name: Generate Diffie-Hellman Parameters
+#   become: true
+#   ansible.builtin.command:
+#     argv:
+#       - openssl
+#       - dhparam
+#       - -out
+#       - /etc/dovecot/private/dh4096.pem
+#       - 4096
+#     creates: /etc/dovecot/private/dh4096.pem
+
+# - name: Update Diffie-Hellman Parameters permissions
+#   become: true
+#   ansible.builtin.file:
+#     path: /etc/dovecot/private/dh4096.pem
+#     mode: u=rw,g=r,o=r
+#     owner: root
+#     group: dovecot
+
+- name: Dovecot disable default system auth
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/dovecot/conf.d/10-auth.conf
+    search_string: "!include auth-system.conf.ext"
+    line: "#!include auth-system.conf.ext"
+  notify: "mail : Restart Dovecot"
+
+- name: Copy Dovecot local.conf
+  become: true
+  ansible.builtin.copy:
+    src: dovecot/local.conf
+    dest: /etc/dovecot/local.conf
+    mode: u=rw,g=r,o=
+    owner: root
+    group: dovecot
+  notify: "mail : Restart Dovecot"
