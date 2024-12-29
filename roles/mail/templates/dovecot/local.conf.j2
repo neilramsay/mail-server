@@ -10,13 +10,13 @@
 ##
 
 # DNS
-auth_realms = example.com, examplehost.example.com
-auth_default_realm = example.com
-postmaster_address = postmaster@example.com
+auth_realms = {{ email_domain }}, {{ email_hostname }}.{{ email_domain }}
+auth_default_realm = {{ email_domain }}
+postmaster_address = postmaster@{{ email_domain }}
 
 # TLS
-#ssl_cert = </etc/letsencrypt/live/mail.example.com/fullchain.pem
-#ssl_key = </etc/letsencrypt/live/mail.example.com/key.pem
+#ssl_cert = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/fullchain.pem
+#ssl_key = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/key.pem
 ssl_client_ca_dir = /etc/ssl/certs
 #ssl_ca = </etc/ssl/certs/webmail-client-ca-chain.pem
 
@@ -119,7 +119,7 @@ ssl_prefer_server_ciphers = no
 # "Since v2.3.3+ Diffie-Hellman parameters have been made optional, and you are encouraged to disable non-ECC DH algorithms completely."
 # The above Mozilla guide includes some "DHE-RSA" key exchange, so we should generate local DH parameters using:
 # openssl gendh 4096 > /etc/dovecot/private/dh4096.pem
-ssl_dh = </etc/dovecot/private/dh4096.pem
+# ssl_dh = </etc/dovecot/private/dh4096.pem
 
 # Obfuscate that we're using Ubuntu
 login_greeting = Dovecot ready.

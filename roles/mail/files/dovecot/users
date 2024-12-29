@@ -1,0 +1,13 @@
+# Userdb and Passdb for Dovecot
+#
+# IMPORTANT:
+#   This file is sensitive, and should only be readable by
+#   Dovecot and root.
+#
+# See passwd(5) manual page for fields
+#
+# Entry reference
+# user:password:uid:gid:gecos:home:shell
+#
+# Example
+# pat:x:10000:10000::/var/mail/virtual/example.com/pat:/sbin/nologin

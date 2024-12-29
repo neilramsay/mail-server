@@ -41,10 +41,20 @@
 
 - name: Copy Dovecot local.conf
   become: true
-  ansible.builtin.copy:
-    src: dovecot/local.conf
+  ansible.builtin.template:
+    src: dovecot/local.conf.j2
     dest: /etc/dovecot/local.conf
     mode: u=rw,g=r,o=
     owner: root
+    group: dovecot
+  notify: "mail : Restart Dovecot"
+
+- name: Copy Dovecot Users
+  become: true
+  ansible.builtin.copy:
+    src: dovecot/users
+    dest: /etc/dovecot/users
+    mode: u=r,g=r,o=
+    owner: dovecot
     group: dovecot
   notify: "mail : Restart Dovecot"

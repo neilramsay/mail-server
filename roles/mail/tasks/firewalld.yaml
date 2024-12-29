@@ -4,6 +4,7 @@
     service: imap
     zone: public
     state: enabled
+    immediate: true
     permanent: true
 
 - name: FirewallD SMTPd
@@ -12,6 +13,7 @@
     service: smtp
     zone: public
     state: enabled
+    immediate: true
     permanent: true
 
 - name: FirewallD Submission
@@ -20,4 +22,5 @@
     service: submission
     zone: public
     state: enabled
+    immediate: true
     permanent: true
