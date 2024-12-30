@@ -137,10 +137,10 @@ managesieve_implementation_string = Dovecot Pigeonhole
 userdb {
   args = username_format=%u /etc/dovecot/users
   driver = passwd-file
-  override_fields = home=/var/mail/virtual/%d/%n
+  override_fields = home=/var/mail/virtual/%d/%n shell=/sbin/nologin
 }
 passdb {
-  args = scheme=SHA512-CRYPT username_format=%u /etc/dovecot/users
+  args = scheme=ARGON2ID username_format=%u /etc/dovecot/users
   driver = passwd-file
 }
 

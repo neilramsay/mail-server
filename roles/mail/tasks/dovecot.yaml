@@ -3,13 +3,23 @@
   loop:
     - /var/mail/virtual
     - /var/mail/virtual/conf.d/
-    - /var/mail/virtual/conf.d/example.com
-    - /var/mail/virtual/example.com
   ansible.builtin.file:
     path: "{{ item }}"
-    mode: u=rwx,g=rwx,o=
-    owner: dovecot # TODO
-    group: dovecot # TODO
+    mode: u=rwx,g=rwx,o=rx
+    owner: root # TODO
+    group: root # TODO
+    state: directory
+
+- name: Create Domain Mail Directories
+  become: true
+  loop:
+    - /var/mail/virtual/conf.d/{{ email_domain }}
+    - /var/mail/virtual/{{ email_domain }}
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: u=rwx,g=rwx,o=trwx
+    owner: root # TODO
+    group: root # TODO
     state: directory
 
 # - name: Generate Diffie-Hellman Parameters
@@ -54,7 +64,10 @@
   ansible.builtin.copy:
     src: dovecot/users
     dest: /etc/dovecot/users
-    mode: u=r,g=r,o=
-    owner: dovecot
+    mode: u=rw,g=r,o=
+    owner: root
     group: dovecot
+    force: false
   notify: "mail : Restart Dovecot"
+
+# Consider making local.d and including from local.conf

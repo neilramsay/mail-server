@@ -9,5 +9,12 @@
 # Entry reference
 # user:password:uid:gid:gecos:home:shell
 #
+# - User names should be email domains.#
+# - Hashed passwords can be generated with:
+#     doveadm pw -s ARGON2ID
+# - The UID/GID should be greater than 10000.
+# - GECOS isn't used
+# - Home and Shell are overridden in Dovecot
+#
 # Example
-# pat:x:10000:10000::/var/mail/virtual/example.com/pat:/sbin/nologin
+# pat@example.com:{ARGON2ID}$argon2id$v=19$m=65536,t=3,p=1$hi5jHLjjy6qh83Z2Wtp3zw$ailge4Sr84dTml53LzfeH/48D46bbNhfIKN2D/sGHdk:10000:10000:::
