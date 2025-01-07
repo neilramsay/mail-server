@@ -15,6 +15,7 @@ auth_default_realm = {{ email_domain }}
 postmaster_address = postmaster@{{ email_domain }}
 
 # TLS
+ssl = required
 #ssl_cert = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/fullchain.pem
 #ssl_key = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/key.pem
 ssl_client_ca_dir = /etc/ssl/certs
@@ -31,6 +32,27 @@ ssl_client_ca_dir = /etc/ssl/certs
 # - sieve for MUA filtering rules
 protocols = imap lmtp sieve
 
+# Disable plaintext listeners
+service imap-login {
+  inet_listener imap {
+    port = 0
+  }
+}
+service pop3-login {
+  inet_listener pop3 {
+    port = 0
+  }
+}
+service submission-login {
+  inet_listener submission {
+    port = 0
+  }
+}
+service managesieve-login {
+  inet_listener sieve {
+    ssl = yes
+  }
+}
 
 ##
 ## Postfix integration
