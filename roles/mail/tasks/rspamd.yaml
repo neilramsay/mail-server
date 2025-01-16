@@ -45,7 +45,7 @@
     group: _rspamd
     state: directory
 
-- name: Write DKIM Key
+- name: Write DKIM Key # noqa: no-handler
   become: true
   ansible.builtin.copy:
     dest: /var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key
@@ -53,6 +53,7 @@
     owner: _rspamd
     group: _rspamd
     content: "{{ rspamd_generate_dkim.stdout }}"
+  when: rspamd_generate_dkim.changed
 
 - name: RSpamd Proxy Service
   become: true
