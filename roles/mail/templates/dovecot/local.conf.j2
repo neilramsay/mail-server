@@ -10,14 +10,14 @@
 ##
 
 # DNS
-auth_realms = {{ email_domain }}, {{ email_hostname }}.{{ email_domain }}
+auth_realms = {{ email_domain }}, {{ email_host }}.{{ email_domain }}
 auth_default_realm = {{ email_domain }}
 postmaster_address = postmaster@{{ email_domain }}
 
 # TLS
 ssl = required
-#ssl_cert = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/fullchain.pem
-#ssl_key = </etc/letsencrypt/live/{{ email_hostname }}.{{ email_domain }}/key.pem
+#ssl_cert = </etc/letsencrypt/live/{{ email_host }}.{{ email_domain }}/fullchain.pem
+#ssl_key = </etc/letsencrypt/live/{{ email_host }}.{{ email_domain }}/key.pem
 ssl_client_ca_dir = /etc/ssl/certs
 #ssl_ca = </etc/ssl/certs/webmail-client-ca-chain.pem
 
