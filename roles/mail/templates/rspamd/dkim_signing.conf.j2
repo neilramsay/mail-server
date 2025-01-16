@@ -3,8 +3,8 @@ allow_hdrfrom_mismatch_sign_networks = true;
 allow_username_mismatch = true;
 sign_authenticated = true;
 domain {
-    examplehost.example.com {
-        path = "/var/lib/rspamd/dkim/examplehost.example.com.dkim.key";
+    {{ email_host }}.{{ email_domain }} {
+        path = "/var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key";
         selector = "dkim";
     }
 }

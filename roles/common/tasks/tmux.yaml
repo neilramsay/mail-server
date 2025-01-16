@@ -26,9 +26,9 @@
   when: not tmux_powerline_conf.stat.exists
 
 - name: Customise Tmux Powerline Segments
-  ansible.builtin.lineinfile:
+  ansible.builtin.blockinfile:
     path: "{{ ansible_facts.user_dir }}/.config/tmux-powerline/config.sh"
-    line: |
+    block: |
       # Local Overrides
 
       export TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(

@@ -91,6 +91,12 @@ protocol imap {
   mail_plugins = $mail_plugins imap_zlib
 }
 
+# Use "RAM Disk" instead of /tmp for temporary operations.
+# This supposedly helps with compression operations,
+# but may cause issues on system crash where /tmp,
+# _may_ perform slightly better - if /tmp isn't cleared after
+# a system crash.
+mail_temp_dir = /dev/shm/
 
 ##
 ## Sieve
@@ -125,6 +131,7 @@ service auth-worker {
 
 # Prevent local userdb interfering with system /etc/passwd
 first_valid_uid = 10000
+first_valid_gid = 10000
 
 # TLS configuration from the Mozilla SSL Configuration Guide
 # https://ssl-config.mozilla.org/#server=dovecot&version=2.3.21&config=intermediate&openssl=3.0.13&guideline=5.7
@@ -140,7 +147,8 @@ ssl_prefer_server_ciphers = no
 #
 # "Since v2.3.3+ Diffie-Hellman parameters have been made optional, and you are encouraged to disable non-ECC DH algorithms completely."
 # The above Mozilla guide includes some "DHE-RSA" key exchange, so we should generate local DH parameters using:
-# openssl gendh 4096 > /etc/dovecot/private/dh4096.pem
+# openssl dhparam -out /etc/dovecot/private/dh4096.pem 4096
+# (Note this can take between 20-40 minutes)
 # ssl_dh = </etc/dovecot/private/dh4096.pem
 
 # Obfuscate that we're using Ubuntu

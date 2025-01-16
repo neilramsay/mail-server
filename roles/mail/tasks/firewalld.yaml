@@ -1,13 +1,4 @@
-- name: FirewallD IMAPd
-  become: true
-  ansible.posix.firewalld:
-    service: imap
-    zone: public
-    state: enabled
-    immediate: true
-    permanent: true
-
-- name: FirewallD SMTPd
+- name: FirewallD Postfix SMTP
   become: true
   ansible.posix.firewalld:
     service: smtp
@@ -15,11 +6,27 @@
     state: enabled
     immediate: true
     permanent: true
-
-- name: FirewallD Submission
+- name: FirewallD Postfix SMTPs
   become: true
   ansible.posix.firewalld:
-    service: submission
+    service: smtps
+    zone: public
+    state: enabled
+    immediate: true
+    permanent: true
+
+- name: FirewallD IMAPs
+  become: true
+  ansible.posix.firewalld:
+    service: imaps
+    zone: public
+    state: enabled
+    immediate: true
+    permanent: true
+- name: FirewallD managesieve
+  become: true
+  ansible.posix.firewalld:
+    service: managesieve
     zone: public
     state: enabled
     immediate: true

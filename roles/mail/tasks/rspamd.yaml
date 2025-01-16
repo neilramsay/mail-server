@@ -9,9 +9,9 @@
 
 - name: Rspamd DKIM Signing
   become: true
-  ansible.builtin.copy:
-    src: rspamd/dkim_signing.conf
-    dest: /etc/rspamd/local.d/
+  ansible.builtin.template:
+    src: rspamd/dkim_signing.conf.j2
+    dest: /etc/rspamd/local.d/dkim_signing.conf
     mode: u=rw,g=rw,o=r
   notify:
     - "mail : Restart Rspamd"
@@ -31,8 +31,8 @@
       - rspamadm
       - dkim_keygen
       - --domain
-      - examplehost.example.com
-    creates: /var/lib/rspamd/dkim/examplehost.example.com.dkim.key
+      - "{{ email_host }}.{{ email_domain }}"
+    creates: /var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key
   register: rspamd_generate_dkim
 
 - name: Make DKIM Directory
@@ -47,7 +47,7 @@
 - name: Write DKIM Key
   become: true
   ansible.builtin.copy:
-    dest: /var/lib/rspamd/dkim/examplehost.example.com.dkim.key
+    dest: /var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key
     mode: u=rw,g=rw,o=
     owner: _rspamd
     group: _rspamd
