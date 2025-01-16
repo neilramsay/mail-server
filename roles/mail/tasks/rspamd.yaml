@@ -26,6 +26,7 @@
     - "mail : Restart Rspamd"
 
 - name: Generate DKIM Key
+  become: true
   ansible.builtin.command:
     argv:
       - rspamadm
