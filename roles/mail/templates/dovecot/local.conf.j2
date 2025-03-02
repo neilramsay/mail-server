@@ -10,9 +10,9 @@
 ##
 
 # DNS
-auth_realms = {{ email_domain }}, {{ email_host }}.{{ email_domain }}
-auth_default_realm = {{ email_domain }}
-postmaster_address = postmaster@{{ email_domain }}
+auth_realms = {{ mail_email_domain }}, {{ mail_email_hostname }}.{{ mail_email_domain }}
+auth_default_realm = {{ mail_email_domain }}
+postmaster_address = postmaster@{{ mail_email_domain }}
 
 # TLS
 {% if mail_dovecot_tls_cert and mail_dovecot_tls_key %}
@@ -139,10 +139,6 @@ service auth-worker {
   user = $default_internal_user
 }
 
-# Prevent local userdb interfering with system /etc/passwd
-first_valid_uid = 10000
-first_valid_gid = 10000
-
 ##
 ## TLS configuration
 ##
@@ -183,6 +179,9 @@ ssl_dh = </etc/ssl/ffdhe/ffdhe4096.pem
 
 
 
+##
+## Various Options
+##
 # Obfuscate that we're using Ubuntu
 login_greeting = Dovecot ready.
 managesieve_implementation_string = Dovecot Pigeonhole
@@ -209,3 +208,7 @@ passdb {
 # Place mail in a MailDir inside of the virtual users's
 # home directory (/var/mail/virtual/%d/%n/)
 mail_location = maildir:~/mail
+
+# Prevent local userdb interfering with system /etc/passwd
+first_valid_uid = 10000
+first_valid_gid = 10000

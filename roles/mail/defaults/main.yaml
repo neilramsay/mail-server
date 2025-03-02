@@ -1,6 +1,7 @@
 ---
-email_domain: example.com
-email_host: examplehost
+mail_email_domain: example.com
+mail_email_hostname: examplehost
+
 # TLS
 mail_dovecot_min_tls: 1.2
 
