@@ -39,6 +39,7 @@ ssl_client_ca_dir = /etc/ssl/certs
 # - sieve for MUA filtering rules
 protocols = imap lmtp sieve
 
+{% if mail_dovecot_disable_plaintext %}
 # Disable plaintext listeners
 service imap-login {
   inet_listener imap {
@@ -60,6 +61,7 @@ service managesieve-login {
     ssl = yes
   }
 }
+{% endif %}
 
 ##
 ## Postfix integration
