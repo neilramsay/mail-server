@@ -83,7 +83,7 @@ service auth {
   }
 }
 
-
+{% if mail_dovecot_compression %}
 ##
 ## Compression
 ##
@@ -99,6 +99,7 @@ plugin {
 protocol imap {
   mail_plugins = $mail_plugins imap_zlib
 }
+{% endif %}
 
 # Use "RAM Disk" instead of /tmp for temporary operations.
 # This supposedly helps with compression operations,
@@ -107,6 +108,7 @@ protocol imap {
 # a system crash.
 mail_temp_dir = /dev/shm/
 
+{% if mail_dovecot_sieve %}
 ##
 ## Sieve
 ##
@@ -119,10 +121,9 @@ protocol lda {
   mail_plugins = $mail_plugins sieve
 }
 plugin {
-  #?sieve = /var/mail/virtual/%d/%u/.dovecot.sieve
-  #?sieve_dir = /var/mail/virtual/%d/%u/sieve
   sieve_global = /var/mail/virtual/conf.d/%d/sieve
 }
+{% endif %}
 
 ##
 ## Security Options
