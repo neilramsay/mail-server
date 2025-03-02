@@ -15,9 +15,16 @@ auth_default_realm = {{ email_domain }}
 postmaster_address = postmaster@{{ email_domain }}
 
 # TLS
-ssl = required
-#ssl_cert = </etc/letsencrypt/live/{{ email_host }}.{{ email_domain }}/fullchain.pem
-#ssl_key = </etc/letsencrypt/live/{{ email_host }}.{{ email_domain }}/key.pem
+{% if mail_dovecot_tls_cert and mail_dovecot_tls_key %}
+ssl_cert = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/fullchain.pem
+ssl_key = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/key.pem
+{% elseif mail_dovecot_tls_letsencrypt %}
+ssl_cert = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/fullchain.pem
+ssl_key = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/key.pem
+{% else %}
+#ssl_cert = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/fullchain.pem
+#ssl_key = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/key.pem
+{% endif %}
 ssl_client_ca_dir = /etc/ssl/certs
 #ssl_ca = </etc/ssl/certs/webmail-client-ca-chain.pem
 

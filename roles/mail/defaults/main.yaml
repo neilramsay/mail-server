@@ -8,6 +8,12 @@ mail_dovecot_min_tls: 1.2
 # for Email Submission and Access
 # https://datatracker.ietf.org/doc/html/rfc8314
 mail_dovecot_disable_plaintext: true
+
+# TLS Certs
+mail_dovecot_tls_cert:
+mail_dovecot_tls_key:
+mail_dovecot_tls_letsencrypt: false
+
 # TLS 1.2
 # TLS configuration from the Mozilla SSL Configuration Guide
 # https://ssl-config.mozilla.org/#server=dovecot&version=2.3.21&config=modern&openssl=3.0.13&guideline=5.7
