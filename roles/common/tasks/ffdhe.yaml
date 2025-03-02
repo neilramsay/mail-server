@@ -1,0 +1,25 @@
+# Negotiated Finite Field Diffie-Hellman Ephemeral Parameters
+# for Transport Layer Security (TLS)
+# https://datatracker.ietf.org/doc/html/rfc7919
+#
+# Downloaded from
+# https://github.com/internetstandards/dhe_groups
+
+- name: RFC7919 FFDHE Parameters
+  become: true
+  block:
+    - name: Create system wide Finite Field Diffie-Hellman Ephemeral Parameters folder
+      ansible.builtin.file:
+        path: /etc/ssl/ffdhe
+        mode: u=rwx,g=rx,o=rx
+        owner: root
+        group: root
+        state: directory
+
+    - name: Copy 4096 bit FFDHE Parameters
+      ansible.builtin.copy:
+        src: ffdhe4096.pem
+        dest: /etc/ssl/ffdhe/
+        mode: u=rw,g=r,o=r
+        owner: root
+        group: root

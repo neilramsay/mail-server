@@ -148,8 +148,14 @@ ssl_prefer_server_ciphers = no
 # "Since v2.3.3+ Diffie-Hellman parameters have been made optional, and you are encouraged to disable non-ECC DH algorithms completely."
 # The above Mozilla guide includes some "DHE-RSA" key exchange, so we should generate local DH parameters using:
 # openssl dhparam -out /etc/dovecot/private/dh4096.pem 4096
-# (Note this can take between 20-40 minutes)
-# ssl_dh = </etc/dovecot/private/dh4096.pem
+{% if mail_dovecot_tls_diffie_hellman %}
+ssl_dh = </etc/ssl/ffdhe/ffdhe4096.pem
+{% else %}
+# ssl_dh = </etc/ssl/ffdhe/ffdhe4096.pem
+{% endif %}
+{% endif %}
+
+
 
 # Obfuscate that we're using Ubuntu
 login_greeting = Dovecot ready.

@@ -22,25 +22,6 @@
     group: root # TODO
     state: directory
 
-# - name: Generate Diffie-Hellman Parameters
-#   become: true
-#   ansible.builtin.command:
-#     argv:
-#       - openssl
-#       - dhparam
-#       - -out
-#       - /etc/dovecot/private/dh4096.pem
-#       - 4096
-#     creates: /etc/dovecot/private/dh4096.pem
-
-# - name: Update Diffie-Hellman Parameters permissions
-#   become: true
-#   ansible.builtin.file:
-#     path: /etc/dovecot/private/dh4096.pem
-#     mode: u=rw,g=r,o=r
-#     owner: root
-#     group: dovecot
-
 - name: Dovecot disable default system auth
   become: true
   ansible.builtin.lineinfile:

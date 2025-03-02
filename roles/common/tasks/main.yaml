@@ -9,6 +9,9 @@
 - name: Core Apt Updates
   ansible.builtin.import_tasks: apt.yaml
 
+- name: Install TLS FFDHE Parameters
+  ansible.builtin.import_tasks: ffdhe.yaml
+
 - name: Install Fish
   ansible.builtin.import_tasks: shell.yaml
 

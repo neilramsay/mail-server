@@ -1,3 +1,4 @@
 ---
 email_domain: example.com
 email_host: examplehost
+mail_dovecot_tls_diffie_hellman: true
