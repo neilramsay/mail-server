@@ -32,8 +32,8 @@
       - rspamadm
       - dkim_keygen
       - --domain
-      - "{{ email_host }}.{{ email_domain }}"
-    creates: /var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key
+      - "{{ mail_email_hostname }}.{{ mail_email_domain }}"
+    creates: /var/lib/rspamd/dkim/{{ mail_email_hostname }}.{{ mail_email_domain }}.dkim.key
   register: rspamd_generate_dkim
 
 - name: Make DKIM Directory
@@ -48,7 +48,7 @@
 - name: Write DKIM Key # noqa: no-handler
   become: true
   ansible.builtin.copy:
-    dest: /var/lib/rspamd/dkim/{{ email_host }}.{{ email_domain }}.dkim.key
+    dest: /var/lib/rspamd/dkim/{{ mail_email_hostname }}.{{ mail_email_domain }}.dkim.key
     mode: u=rw,g=rw,o=
     owner: _rspamd
     group: _rspamd
