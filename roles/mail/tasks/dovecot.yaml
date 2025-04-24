@@ -13,8 +13,8 @@
 - name: Create Domain Mail Directories
   become: true
   loop:
-    - /var/mail/virtual/conf.d/{{ email_domain }}
-    - /var/mail/virtual/{{ email_domain }}
+    - /var/mail/virtual/conf.d/{{ mail_email_domain }}
+    - /var/mail/virtual/{{ mail_email_domain }}
   ansible.builtin.file:
     path: "{{ item }}"
     mode: u=rwx,g=rwx,o=trwx
