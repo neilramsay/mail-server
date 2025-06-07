@@ -868,3 +868,38 @@ smtp_tls_loglevel         = {{ mail_postfix_tls_debug_level }}
 smtpd_tls_loglevel        = {{ mail_postfix_tls_debug_level }}
 
 
+# SIMPLE AUTHENTICATION AND SECURITY LAYER (SASL)
+#
+# SASL allows users outside of the network to authenticate
+# their identity.
+# Authenticated users typically are permited to relay messages
+# that are not a destination of this server.
+#
+# SASL is not handled within Postfix itself, and instead delegates
+# the authentication process to another service - Dovecot in our case.
+# Dovecot is often configured to place a UNIX Socket in the
+# Postfix "private directory", specifically for chrooted Postfix
+# processes to use.
+#
+# See https://www.postfix.org/SASL_README.html
+#
+# SMTPD SASL Service
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_type        = dovecot
+smtpd_sasl_path        = private/auth
+
+# SASL login names that own the envelope sender (MAIL FROM) addresses
+# TODO
+#-smtpd_sender_login_maps = hash:/etc/postfix/sasl_senders.map
+
+# SASL Other Options
+smtpd_sasl_authenticated_header = yes
+
+# SMTP SASL
+# Password authentication for next-hop relays.
+# We sometimes need to do this to "piggyback" off a more trusted relay.
+# This mostly happens when we cannot be added to a allowlist (Google/Microsoft/Yahoo)
+#smtp_sasl_auth_enable   = yes
+#smtp_sasl_password_maps = hash:/etc/postfix/smtp_sasl.map
+
+
