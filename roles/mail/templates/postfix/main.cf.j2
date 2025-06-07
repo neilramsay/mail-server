@@ -714,3 +714,60 @@ postscreen_dnsbl_sites        = sbl-xbl.spamhaus.org
 #postscreen_pipelining_action = ignore
 #postscreen_non_smtp_command_action = ignore
 #postscreen_bare_newline_action = ignore
+
+
+# SMTP PROTOCOL RESTRICTIONS
+#
+# Below are some miscellaneous settings that improve SMTPD security
+#
+smtpd_helo_required     = yes
+disable_vrfy_command    = yes
+
+# Message Size Restrictions
+# - Maximum email size 100MB
+# - Unlimited mailbox size (handled by Dovecot anyway)
+strict_rfc821_envelopes = yes
+message_size_limit      = 104857600
+mailbox_size_limit      = 0
+
+
+# SMTPD ACCESS CONTROLS
+#
+# Below are controls applied to various stages of the SMTP conversation.
+# Each stage provides comments on each control.
+#
+# See https://www.postfix.org/SMTPD_ACCESS_README.html
+#
+# HELO/EHLO
+# reject_invalid_helo_hostname    - Reject the request when the HELO or EHLO hostname is malformed.
+# reject_non_fqdn_helo_hostname   - Reject the request when the HELO or EHLO hostname is not in fully-qualified domain or address literal form, as required by the RFC
+# reject_unknown_helo_hostname    - Reject the request when the HELO or EHLO hostname has no DNS A or MX record.
+smtpd_helo_restrictions = reject_invalid_helo_hostname, reject_non_fqdn_helo_hostname
+
+# MAIL FROM
+# reject_non_fqdn_sender          - Reject the request when the MAIL FROM address specifies a domain that is not in fully-qualified domain form as required by the RFC.
+# reject_unknown_sender_domain    - Reject the request when Postfix is not the final destination for the sender address, and the MAIL FROM domain has 1) no DNS MX and no DNS A record, or 2) a malformed MX record such as a record with a zero-length MX hostname
+# reject_authenticated_sender_login_mismatch - Reject the request when the client is authenticated with SASL, but either the MAIL FROM address is not listed in $smtpd_sender_login_maps, or the SASL login name is not an owner for that address.
+smtpd_sender_restrictions = reject_non_fqdn_sender, reject_unknown_sender_domain
+
+# RCPT TO - recipient restrictions
+# reject_non_fqdn_recipient       - Reject the request when the RCPT TO address specifies a domain that is not in fully-qualified domain form, as required by the RFC.
+# reject_unknown_recipient_domain - Reject the request when Postfix is not final destination for the recipient domain, and the RCPT TO domain has 1) no DNS MX and no DNS A record or 2) a malformed MX record such as a record with a zero-length MX hostname
+smtpd_recipient_restrictions = reject_non_fqdn_recipient, reject_unknown_recipient_domain
+
+# RCPT TO - relay restrictions
+# permit_mynetworks               - Permit the request when the client IP address matches any network or network address listed in $mynetworks.
+# permit_tls_clientcerts          - Permit the request when the remote SMTP client certificate fingerprint or public key fingerprint (Postfix 2.9 and later) is listed in $relay_clientcerts.
+# permit_sasl_authenticated       - Permit the request when the client is successfully authenticated via the RFC 4954 (AUTH) protocol.
+# defer_unauth_destination - Reject the request unless one of the following is true, with a non-permanent error code:
+#                            1. Postfix is a mail forwarder: the resolved RCPT TO domain matches $relay_domains or a subdomain thereof,
+#                               and contains no sender-specified routing (user@elsewhere@domain),
+#                            2. Postfix is the final destination: the resolved RCPT TO domain matches $mydestination, $inet_interfaces,
+#                               $proxy_interfaces, $virtual_alias_domains, or $virtual_mailbox_domains,
+#                               and contains no sender-specified routing (user@elsewhere@domain).
+smtpd_relay_restrictions = permit_mynetworks, defer_unauth_destination
+
+# DATA
+# reject_unauth_pipelining - Reject the request when the client sends SMTP commands ahead of time where it is not allowed
+smtpd_data_restrictions = reject_unauth_pipelining
+
