@@ -903,3 +903,9 @@ smtpd_sasl_authenticated_header = yes
 #smtp_sasl_password_maps = hash:/etc/postfix/smtp_sasl.map
 
 
+# RSpamD Milters
+#
+# See https://www.postfix.org/MILTER_README.html
+milter_default_action = accept  # tempfail
+smtpd_milters         = unix:private/rspamd-proxy.socket
+
