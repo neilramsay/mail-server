@@ -12,8 +12,8 @@ mail_postfix_tls_options: #NO_COMPRESSION, NO_RENEGOTIATION
 mail_postfix_tls_debug_level: 0
 
 # TLS Certs
-mail_postfix_tls_cert:
-mail_postfix_tls_key:
+mail_postfix_tls_cert: null
+mail_postfix_tls_key: null
 mail_postfix_tls_letsencrypt: false
 # smtpd_tls_chain_files =
 #   /path/to/private_key,

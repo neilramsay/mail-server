@@ -7,8 +7,8 @@ mail_dovecot_min_tls: 1.3
 mail_dovecot_disable_plaintext: true
 
 # TLS Certs
-mail_dovecot_tls_cert:
-mail_dovecot_tls_key:
+mail_dovecot_tls_cert: null
+mail_dovecot_tls_key: null
 mail_dovecot_tls_letsencrypt: false
 
 # TLS 1.2
