@@ -788,3 +788,83 @@ submissions_data_restrictions = $smtpd_data_restrictions
 # relay_clientcerts = hash:/etc/postfix/relay_clientcerts
 {% endif %}
 
+# TRANSPORT LAYER SECURITY (TLS/SSL)
+#
+# Configure network connections to use TLS encryption.
+#
+# This is based off the Mozilla SSL Configuration Generator
+# generated 2025-04-25, Mozilla Guideline v5.7, Postfix 3.9.0, OpenSSL 3.0.13, modern config
+# https://ssl-config.mozilla.org/#server=postfix&version=3.9.0&config=modern&openssl=3.0.13&guideline=5.7
+#
+# Set the TLS security level to "may", which makes connections to/from
+# Postfix opportunistically perform TLS.
+# In an ideal world, everyone would support TLS, but that is not reality.
+smtp_tls_security_level = may
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+
+# TLS Protocol Selection
+# TLS configuration from the Mozilla SSL Configuration Guide
+smtpd_tls_mandatory_protocols = >=TLSv{{ mail_postfix_min_tls }}
+smtpd_tls_protocols           = >=TLSv{{ mail_postfix_min_tls }}
+smtp_tls_mandatory_protocols  = >=TLSv{{ mail_postfix_min_tls }}
+smtp_tls_protocols            = >=TLSv{{ mail_postfix_min_tls }}
+
+# TLS Cipher Selection
+tls_preempt_cipherlist        = no
+tls_eecdh_auto_curves         = {{ mail_postfix_tls_eecdh_auto_curves }}
+tls_ffdhe_auto_groups         =
+{% if mail_postfix_min_tls == 1.2 %}
+# TLS 1.2
+# generated 2025-04-25, Mozilla Guideline v5.7, Postfix 3.9.0, OpenSSL 3.0.13, intermediate config
+# https://ssl-config.mozilla.org/#server=postfix&version=3.9.0&config=intermediate&openssl=3.0.13&guideline=5.7
+smtp_tls_mandatory_ciphers    = {{ mail_postfix_tls_mandatory_ciphers }}
+smtpd_tls_mandatory_ciphers   = {{ mail_postfix_tls_mandatory_ciphers }}
+tls_medium_cipherlist         = {{ mail_postfix_tls_medium_cipherlist }}
+
+{% if mail_postfix_tls_dh1024_param_file %}
+# With Postfix >= 3.7, built with OpenSSL version is 3.0.0 or later, if the parameter
+# value is either empty or "auto", then the DH parameter selection is delegated to
+# the OpenSSL library, which selects appropriate parameters based on the TLS handshake.
+# This choice is likely to be the most interoperable with SMTP clients using
+# various TLS libraries, and custom local parameters are no longer
+# recommended when using Postfix >= 3.7 built against OpenSSL 3.0.0.
+#
+# The best-practice choice of parameters uses a 2048-bit prime.
+# This is fine, despite the historical "1024" in the parameter name.
+# Do not be tempted to use much larger values, performance degrades quickly,
+# and you may also cease to interoperate with some mainstream SMTP clients.
+# As of Postfix 3.1, the compiled-in default prime is 2048-bits, and it is
+# not strictly necessary, though perhaps somewhat beneficial to generate custom DH parameters.
+smtpd_tls_dh1024_param_file   = {{ mail_postfix_tls_dh1024_param_file }}
+{% endif %}
+{% endif %}
+
+# TLS Session Caches
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+
+{% if mail_postfix_tls_options %}
+# Direct OpenSSL Options
+# Many OpenSSL options are exposed by Postfix configuration settings.
+# For those not exposed, they are listed in:
+# https://www.openssl.org/docs/manmaster/man3/SSL_CTX_set_options.html
+tls_ssl_options = {{ mail_postfix_tls_options }}
+{% endif %}
+
+# SMTP Server TLS Certificates
+smtpd_tls_chain_files =
+    /etc/letsencrypt/live/examplehost.example.com/fullchain.pem,
+    /etc/letsencrypt/live/examplehost.example.com/privkey.pem,
+    /etc/ssl/certs/ca-certificates.crt
+
+# SMTP Client TLS CA Certificates
+smtp_tls_chain_files =
+    /etc/ssl/certs/ca-certificates.crt
+
+# TLS Other Options
+smtpd_tls_received_header = {{ mail_postfix_tls_received_header }}
+smtp_tls_loglevel         = {{ mail_postfix_tls_debug_level }}
+smtpd_tls_loglevel        = {{ mail_postfix_tls_debug_level }}
+
+
