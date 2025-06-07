@@ -1,0 +1,10 @@
+- name: Copy Postfix Configuration
+  loop:
+    - main.cf.j2
+    - master.cf.j2
+  ansible.builtin.template:
+    src: postfix/{{ item }}
+    dest: /etc/postfix/
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
