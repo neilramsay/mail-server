@@ -4,6 +4,10 @@
 - name: RSpamd
   ansible.builtin.import_tasks: rspamd.yaml
 
+- name: Debug
+  ansible.builtin.debug:
+    var: hostvars[inventory_hostname]
+
 - name: Dovecot
   ansible.builtin.import_tasks: dovecot.yaml
 
