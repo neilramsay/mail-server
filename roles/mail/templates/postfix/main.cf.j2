@@ -909,3 +909,11 @@ smtpd_sasl_authenticated_header = yes
 milter_default_action = accept  # tempfail
 smtpd_milters         = unix:private/rspamd-proxy.socket
 
+
+# VIRTUAL DOMAINS
+#
+virtual_mailbox_domains = {{ mail_email_hostname }}.{{ mail_email_domain }}
+virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+virtual_alias_maps = hash:/etc/postfix/virtual_alias
+
