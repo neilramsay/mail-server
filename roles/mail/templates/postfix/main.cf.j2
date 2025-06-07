@@ -692,3 +692,25 @@ debugger_command =
 #inet_protocols = ipv4
 
 
+#
+# CUSTOMISATIONS
+#
+
+# POSTSCREEN
+#
+# Postscreen prefiltering for SMTP clients that do not correctly
+# implement the SMTP protocol, or are listed in the Spamhaus
+# Reverse DNS list.
+# See https://www.postfix.org/POSTSCREEN_README.html
+#
+# Pre-220 Tests are not intrusive
+postscreen_greet_action       = enforce
+postscreen_helo_required      = $smtpd_helo_required
+{% if mail_postfix_dnsbl_sites %}
+postscreen_dnsbl_action       = enforce
+postscreen_dnsbl_sites        = sbl-xbl.spamhaus.org
+{% endif %}
+# Post-220 Tests are intrusive, and force the client to reconnect
+#postscreen_pipelining_action = ignore
+#postscreen_non_smtp_command_action = ignore
+#postscreen_bare_newline_action = ignore
