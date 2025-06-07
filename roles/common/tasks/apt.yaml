@@ -29,3 +29,4 @@
       - tmux-plugin-manager
       - python3-powerline
     state: present
+  diff: true
