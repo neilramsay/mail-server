@@ -16,3 +16,4 @@
       - rspamd
       - redis
     state: present
+  diff: true
