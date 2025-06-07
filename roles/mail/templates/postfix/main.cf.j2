@@ -771,3 +771,20 @@ smtpd_relay_restrictions = permit_mynetworks, defer_unauth_destination
 # reject_unauth_pipelining - Reject the request when the client sends SMTP commands ahead of time where it is not allowed
 smtpd_data_restrictions = reject_unauth_pipelining
 
+
+# SUBMISSIONS ACCESS CONTROLS
+#
+# Similar to SMTPD Access Controls, these controls are applied to Mail User Agents (MUAs)
+# instead of Mail Exchange (MX) Relays.
+# See above for comments on the controls
+submissions_helo_restrictions = $smtpd_helo_restrictions
+submissions_sender_restrictions = $smtpd_sender_restrictions, reject_authenticated_sender_login_mismatch
+submissions_recipient_restrictions = $smtpd_recipient_restrictions
+submissions_relay_restrictions = permit_tls_clientcerts, permit_sasl_authenticated, defer_unauth_destination
+submissions_data_restrictions = $smtpd_data_restrictions
+{% if true %}
+# submissions_tls_ask_ccert = yes
+# submissions_tls_CAfile =
+# relay_clientcerts = hash:/etc/postfix/relay_clientcerts
+{% endif %}
+
