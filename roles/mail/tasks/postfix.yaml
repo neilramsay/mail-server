@@ -1,4 +1,5 @@
 - name: Copy Postfix Configuration
+  become: true
   loop:
     - main.cf.j2
     - master.cf.j2
