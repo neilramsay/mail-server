@@ -6,7 +6,7 @@
 
 - name: Debug
   ansible.builtin.debug:
-    var: hostvars[inventory_hostname]
+    var: vars
 
 - name: Dovecot
   ansible.builtin.import_tasks: dovecot.yaml
