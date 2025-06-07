@@ -15,6 +15,7 @@
       - snapd
     state: absent
     autoremove: true
+  diff: true
 
 - name: Install Common Packages
   become: true
