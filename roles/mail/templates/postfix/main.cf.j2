@@ -706,7 +706,7 @@ debugger_command =
 # Pre-220 Tests are not intrusive
 postscreen_greet_action       = enforce
 postscreen_helo_required      = $smtpd_helo_required
-{% if mail_postfix_dnsbl_sites %}
+{% if mail_postfix_dnsbl_sites is true %}
 postscreen_dnsbl_action       = enforce
 postscreen_dnsbl_sites        = sbl-xbl.spamhaus.org
 {% endif %}
@@ -822,7 +822,7 @@ smtp_tls_mandatory_ciphers    = {{ mail_postfix_tls_mandatory_ciphers }}
 smtpd_tls_mandatory_ciphers   = {{ mail_postfix_tls_mandatory_ciphers }}
 tls_medium_cipherlist         = {{ mail_postfix_tls_medium_cipherlist }}
 
-{% if mail_postfix_tls_dh1024_param_file %}
+{% if mail_postfix_tls_dh1024_param_file is defined %}
 # With Postfix >= 3.7, built with OpenSSL version is 3.0.0 or later, if the parameter
 # value is either empty or "auto", then the DH parameter selection is delegated to
 # the OpenSSL library, which selects appropriate parameters based on the TLS handshake.
@@ -844,7 +844,7 @@ smtpd_tls_dh1024_param_file   = {{ mail_postfix_tls_dh1024_param_file }}
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 
-{% if mail_postfix_tls_options %}
+{% if mail_postfix_tls_options is defined %}
 # Direct OpenSSL Options
 # Many OpenSSL options are exposed by Postfix configuration settings.
 # For those not exposed, they are listed in:

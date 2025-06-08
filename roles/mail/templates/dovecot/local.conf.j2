@@ -18,7 +18,7 @@ postmaster_address = postmaster@{{ mail_email_domain }}
 {% if mail_dovecot_tls_cert is defined and mail_dovecot_tls_key is defined %}
 ssl_cert = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/fullchain.pem
 ssl_key = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/key.pem
-{% elif mail_dovecot_tls_letsencrypt %}
+{% elif vars.mail_dovecot_tls_letsencrypt is true %}
 ssl_cert = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/fullchain.pem
 ssl_key = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/key.pem
 {% else %}
@@ -39,7 +39,7 @@ ssl_client_ca_dir = /etc/ssl/certs
 # - sieve for MUA filtering rules
 protocols = imap lmtp sieve
 
-{% if mail_dovecot_disable_plaintext %}
+{% if mail_dovecot_disable_plaintext is true %}
 # Disable plaintext listeners
 service imap-login {
   inet_listener imap {
@@ -83,7 +83,7 @@ service auth {
   }
 }
 
-{% if mail_dovecot_compression %}
+{% if mail_dovecot_compression is true %}
 ##
 ## Compression
 ##
@@ -108,7 +108,7 @@ protocol imap {
 # a system crash.
 mail_temp_dir = /dev/shm/
 
-{% if mail_dovecot_sieve %}
+{% if mail_dovecot_sieve is true %}
 ##
 ## Sieve
 ##
@@ -143,7 +143,7 @@ service auth-worker {
 ## TLS configuration
 ##
 
-{% if mail_dovecot_disable_plaintext %}
+{% if mail_dovecot_disable_plaintext is true %}
 ssl = required
 {% else %}
 ssl = yes
@@ -170,7 +170,7 @@ ssl_prefer_server_ciphers = yes
 # "Since v2.3.3+ Diffie-Hellman parameters have been made optional, and you are encouraged to disable non-ECC DH algorithms completely."
 # The above Mozilla guide includes some "DHE-RSA" key exchange, so we should generate local DH parameters using:
 # openssl dhparam -out /etc/dovecot/private/dh4096.pem 4096
-{% if mail_dovecot_tls_diffie_hellman %}
+{% if mail_dovecot_tls_diffie_hellman is true %}
 ssl_dh = </etc/ssl/ffdhe/ffdhe4096.pem
 {% else %}
 # ssl_dh = </etc/ssl/ffdhe/ffdhe4096.pem
