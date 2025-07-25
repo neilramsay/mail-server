@@ -2,7 +2,7 @@ argument_specs:
   # roles/myapp/tasks/main.yml entry point
   main:
     short_description: Fetch LetsEncrypt certificate with Route53 DNS
-    description:
+    description: asdf
     author:
       - Neil Ramsay
     options:
@@ -21,10 +21,10 @@ argument_specs:
         type: str
         required: true
 
-      hostname:
+      acme_hostname:
         type: str
         required: true
-      dns_zone:
+      acme_dns_zone:
         type: str
         required: true
 

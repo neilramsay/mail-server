@@ -5,14 +5,22 @@
   block:
     - name: Install package requirements
       ansible.builtin.package:
-        name: "{{ acme_certificate_packages }}"
+        name:
+          - openssl
 
     - name: Install pip requirements
       ansible.builtin.pip:
         name:
           - dnspython
           - cryptography
+          - boto3
       changed_when: false
+
+- name: Check AWS credentials
+  amazon.aws.aws_caller_info:
+    aws_access_key_id: "{{ aws_access_key_id }}"
+    aws_secret_access_key: "{{ aws_secret_access_key }}"
+    aws_session_token: "{{ aws_session_token }}"
 
 - name: Automatic Certificate Management Environment (ACME) Setup
   become: true
@@ -43,24 +51,25 @@
         state: present
         terms_agreed: true
         contact:
-          - mailto: "{{ acme_email }}"
+          - "mailto:{{ acme_email }}"
 
 - name: Generate CSR
   become: true
   block:
     - name: Generate Private Key
       community.crypto.openssl_privatekey:
-        path: "{{ acme_keys_dir }}/{{ hostname }}.key"
+        path: "{{ acme_keys_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.key"
 
     - name: Generate CSR
       community.crypto.openssl_csr:
-        path: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
-        privatekey_path: "{{ acme_keys_dir }}/{{ hostname }}.key"
-        common_name: "{{ hostname }}"
+        path: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+        privatekey_path: "{{ acme_keys_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.key"
+        common_name: "{{ acme_hostname }}.{{ acme_dns_zone }}"
         subject_alt_name:
-          - "{{ hostname }}"
+          - "DNS:{{ acme_hostname }}.{{ acme_dns_zone }}"
 
 - name: DNS Challenge
+  become: true
   block:
     - name: Create ACME Challenge
       community.crypto.acme_certificate:
@@ -68,23 +77,30 @@
         acme_directory: "{{ acme_server_api }}"
         account_key_src: "{{ acme_account_key }}"
         challenge: "{{ acme_challenge_type }}"
-        # profile: tlsserver
-        csr: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
-        dest: "{{ acme_certs_dir }}/{{ hostname }}.crt"
-        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ hostname }}.crt"
+        profile: tlsserver
+        force: true # FORCE FORCE FORCE
+        csr: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+        dest: "{{ acme_certs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
+        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
         remaining_days: 91
       register: acme_certificate_challenge
 
-    - name: Create Route53 CNAME
+    - name: Debug
+      ansible.builtin.debug:
+        var: acme_certificate_challenge.challenge_data
+
+    - name: Create Route53 Validation
+      vars:
+        full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
       amazon.aws.route53:
         aws_access_key_id: "{{ aws_access_key_id }}"
         aws_secret_access_key: "{{ aws_secret_access_key }}"
         aws_session_token: "{{ aws_session_token }}"
         state: present
         type: TXT
-        zone: "{{ zone }}"
-        record: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["record"] }}' # Generated
-        value: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["resource_value"] }}' # Generated
+        zone: "{{ acme_dns_zone }}"
+        record: "{{ acme_certificate_challenge.challenge_data[full_hostname]['dns-01']['record'] }}" # Generated
+        value: '"{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["resource_value"] }}"' # Generated
         wait: true
 
     - name: Validate ACME Challenge
@@ -94,19 +110,22 @@
         account_key_src: "{{ acme_account_key }}"
         challenge: "{{ acme_challenge_type }}"
         data: "{{ acme_certificate_challenge }}"
-        # profile: tlsserver
-        csr: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
-        dest: "{{ acme_certs_dir }}/{{ hostname }}.crt"
-        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ hostname }}.crt"
+        profile: tlsserver
+        force: true # FORCE FORCE FORCE
+        csr: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+        dest: "{{ acme_certs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
+        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
 
   always:
     - name: Cleanup Route53 Challenge
+      vars:
+        full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
       amazon.aws.route53:
         aws_access_key_id: "{{ aws_access_key_id }}"
         aws_secret_access_key: "{{ aws_secret_access_key }}"
         aws_session_token: "{{ aws_session_token }}"
         state: absent
         type: TXT
-        zone: "{{ zone }}"
-        record: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["record"] }}' # Generated
+        zone: "{{ acme_dns_zone }}"
+        record: '{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["record"] }}' # Generated
         wait: true

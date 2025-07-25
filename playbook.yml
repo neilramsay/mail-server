@@ -2,8 +2,27 @@
   hosts: localhost
   roles:
     - common
+    - role: acme
+      # aws_access_key_id: "{{ aws_access_key_id }}"
+      # aws_secret_access_key: "{{ aws_secret_access_key }}"
+      # aws_session_token: "{{ aws_session_token }}"
+      # acme_email: "{{ acme_email }}"
+      acme_hostname: acme-test
+      acme_dns_zone: agentnoel.geek.nz
     - mail
   vars_prompt:
     - name: aws_access_key_id
-      prompt: AWS Access Key
-      private: no
+      prompt: AWS Access Key ID
+      private: false
+
+    - name: aws_secret_access_key
+      prompt: AWS Secret Access Key
+      private: true
+
+    - name: aws_session_token
+      prompt: AWS Session Token
+      private: true
+
+    - name: acme_email
+      prompt: ACME email address
+      private: false
