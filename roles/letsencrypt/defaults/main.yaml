@@ -1,0 +1,23 @@
+
+
+acme_challenge_type: dns-01
+acme_server_api: https://acme-v02.api.letsencrypt.org/directory
+# https://acme-v02.api.letsencrypt.org/directory
+acme_version: 2
+acme_dir: /etc/letsencrypt
+acme_key_type: RSA
+acme_keys_dir: /etc/letsencrypt/keys
+acme_csrs_dir: /etc/letsencrypt/csrs
+acme_certs_dir: /etc/letsencrypt/certs
+acme_account_key: /etc/letsencrypt/account/account.key
+
+acme_email: certificate-reminders@your-domain
+hostname: your-domain
+
+acme_certificate_packages:
+  - openssl
+  - openssh-client
+  - python3-boto
+  - python3-boto3
+  - python3-dnspython
+  - python3-cryptography

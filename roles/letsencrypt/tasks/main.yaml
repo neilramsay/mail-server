@@ -1,0 +1,112 @@
+# Heavily inspired by https://github.com/nephelaiio/ansible-role-acme-certificate-route53
+
+- name: Install dependencies
+  become: true
+  block:
+    - name: Install package requirements
+      ansible.builtin.package:
+        name: "{{ acme_certificate_packages }}"
+
+    - name: Install pip requirements
+      ansible.builtin.pip:
+        name:
+          - dnspython
+          - cryptography
+      changed_when: false
+
+- name: Automatic Certificate Management Environment (ACME) Setup
+  become: true
+  block:
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ acme_dir }}/{{ item }}"
+        owner: root
+        group: root
+        mode: u=rwx,g=rwx,o=rx
+        state: directory
+      with_items:
+        - account
+        - certs
+        - csrs
+        - keys
+
+    - name: Generate Account Key
+      community.crypto.openssl_privatekey:
+        path: "{{ acme_account_key }}"
+        type: "{{ acme_key_type }}"
+
+    - name: Register Account
+      community.crypto.acme_account:
+        acme_version: "{{ acme_version }}"
+        acme_directory: "{{ acme_server_api }}"
+        account_key_src: "{{ acme_account_key }}"
+        state: present
+        terms_agreed: true
+        contact:
+          - mailto: "{{ acme_email }}"
+
+- name: Generate CSR
+  become: true
+  block:
+    - name: Generate Private Key
+      community.crypto.openssl_privatekey:
+        path: "{{ acme_keys_dir }}/{{ hostname }}.key"
+
+    - name: Generate CSR
+      community.crypto.openssl_csr:
+        path: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
+        privatekey_path: "{{ acme_keys_dir }}/{{ hostname }}.key"
+        common_name: "{{ hostname }}"
+        subject_alt_name:
+          - "{{ hostname }}"
+
+- name: DNS Challenge
+  block:
+    - name: Create ACME Challenge
+      community.crypto.acme_certificate:
+        acme_version: "{{ acme_version }}"
+        acme_directory: "{{ acme_server_api }}"
+        account_key_src: "{{ acme_account_key }}"
+        challenge: "{{ acme_challenge_type }}"
+        # profile: tlsserver
+        csr: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
+        dest: "{{ acme_certs_dir }}/{{ hostname }}.crt"
+        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ hostname }}.crt"
+        remaining_days: 91
+      register: acme_certificate_challenge
+
+    - name: Create Route53 CNAME
+      amazon.aws.route53:
+        aws_access_key_id: "{{ aws_access_key_id }}"
+        aws_secret_access_key: "{{ aws_secret_access_key }}"
+        aws_session_token: "{{ aws_session_token }}"
+        state: present
+        type: TXT
+        zone: "{{ zone }}"
+        record: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["record"] }}' # Generated
+        value: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["resource_value"] }}' # Generated
+        wait: true
+
+    - name: Validate ACME Challenge
+      community.crypto.acme_certificate:
+        acme_version: "{{ acme_version }}"
+        acme_directory: "{{ acme_server_api }}"
+        account_key_src: "{{ acme_account_key }}"
+        challenge: "{{ acme_challenge_type }}"
+        data: "{{ acme_certificate_challenge }}"
+        # profile: tlsserver
+        csr: "{{ acme_csrs_dir }}/{{ hostname }}.csr"
+        dest: "{{ acme_certs_dir }}/{{ hostname }}.crt"
+        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ hostname }}.crt"
+
+  always:
+    - name: Cleanup Route53 Challenge
+      amazon.aws.route53:
+        aws_access_key_id: "{{ aws_access_key_id }}"
+        aws_secret_access_key: "{{ aws_secret_access_key }}"
+        aws_session_token: "{{ aws_session_token }}"
+        state: absent
+        type: TXT
+        zone: "{{ zone }}"
+        record: '{{ acme_certificate_challenge.challenge_data[hostname]["dns-01"]["record"] }}' # Generated
+        wait: true
