@@ -1,6 +1,18 @@
 - name: Install Packages
   ansible.builtin.import_tasks: apt.yaml
 
+- name: Get certificate
+  ansible.builtin.import_role:
+    name: acme
+  vars:
+    acme_hostname: "{{ mail_email_hostname }}"
+    acme_dns_zone: "{{ mail_email_domain }}"
+    # - role: acme
+    #   # aws_access_key_id: "{{ aws_access_key_id }}"
+    #   # aws_secret_access_key: "{{ aws_secret_access_key }}"
+    #   # aws_session_token: "{{ aws_session_token }}"
+    #   # acme_email: "{{ acme_email }}"
+
 - name: RSpamd
   ansible.builtin.import_tasks: rspamd.yaml
 
