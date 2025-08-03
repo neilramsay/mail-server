@@ -39,6 +39,7 @@
         - csr      #
         - keys     # ?
         - live     # Symlinks to certs+keys
+        - live/{{ acme_hostname }}.{{ acme_dns_zone }}
         - renewal  #
 
     - name: Generate Account Key
@@ -61,12 +62,12 @@
   block:
     - name: Generate Private Key
       community.crypto.openssl_privatekey:
-        path: "{{ acme_keys_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.key"
+        path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
 
     - name: Generate CSR
       community.crypto.openssl_csr:
-        path: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
-        privatekey_path: "{{ acme_keys_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.key"
+        path: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr" # should be serial #_csr-certbot.pem
+        privatekey_path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
         common_name: "{{ acme_hostname }}.{{ acme_dns_zone }}"
         subject_alt_name:
           - "DNS:{{ acme_hostname }}.{{ acme_dns_zone }}"
@@ -82,15 +83,12 @@
         challenge: "{{ acme_challenge_type }}"
         profile: tlsserver
         force: true # FORCE FORCE FORCE
-        csr: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
-        dest: "{{ acme_certs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
-        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
+        csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+        dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+        chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
+        fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
         remaining_days: 91
       register: acme_certificate_challenge
-
-    - name: Debug
-      ansible.builtin.debug:
-        var: acme_certificate_challenge.challenge_data
 
     - name: Create Route53 Validation
       vars:
@@ -115,9 +113,10 @@
         data: "{{ acme_certificate_challenge }}"
         profile: tlsserver
         force: true # FORCE FORCE FORCE
-        csr: "{{ acme_csrs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
-        dest: "{{ acme_certs_dir }}/{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
-        fullchain_dest: "{{ acme_certs_dir }}/fullchain_{{ acme_hostname }}.{{ acme_dns_zone }}.crt"
+        csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+        dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+        chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
+        fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
 
   always:
     - name: Cleanup Route53 Challenge
