@@ -7,6 +7,7 @@
       ansible.builtin.package:
         name:
           - openssl
+          - certbot
 
     - name: Install pip requirements
       ansible.builtin.pip:
@@ -33,10 +34,12 @@
         mode: u=rwx,g=rwx,o=rx
         state: directory
       with_items:
-        - account
-        - certs
-        - csrs
-        - keys
+        - accounts # ACME registrations
+        - archive  # All certs/chains/fullchains/privkeys
+        - csr      #
+        - keys     # ?
+        - live     # Symlinks to certs+keys
+        - renewal  #
 
     - name: Generate Account Key
       community.crypto.openssl_privatekey:
