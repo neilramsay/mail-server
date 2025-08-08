@@ -34,7 +34,7 @@
         mode: u=rwx,g=rwx,o=rx
         state: directory
       with_items:
-        - accounts # ACME registrations
+        - account # ACME registrations
         - archive  # All certs/chains/fullchains/privkeys
         - csr      #
         - keys     # ?
