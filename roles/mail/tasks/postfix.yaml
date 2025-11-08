@@ -1,11 +1,13 @@
 - name: Copy Postfix Configuration
   become: true
   loop:
-    - main.cf.j2
-    - master.cf.j2
+    - src: main.cf.j2
+      dest: main.cf
+    - src: master.cf.j2
+      dest: master.cf
   ansible.builtin.template:
-    src: postfix/{{ item }}
-    dest: /etc/postfix/
+    src: postfix/{{ item.src }}
+    dest: /etc/postfix/{{ item.dest }}
     owner: root
     group: root
     mode: u=rw,g=r,o=r

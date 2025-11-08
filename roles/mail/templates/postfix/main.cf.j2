@@ -42,7 +42,7 @@ compatibility_level = 3.8
 # (by changing 5xx replies into 4xx replies). However, soft_bounce
 # is no cure for address rewriting mistakes or mail routing mistakes.
 #
-soft_bounce = {{ mail_postfix_soft_bounce }}
+soft_bounce = {{ "yes" if mail_postfix_soft_bounce else "no" }}
 
 # LOCAL PATHNAME INFORMATION
 #
@@ -709,6 +709,9 @@ postscreen_helo_required      = $smtpd_helo_required
 {% if mail_postfix_dnsbl_sites is true %}
 postscreen_dnsbl_action       = enforce
 postscreen_dnsbl_sites        = sbl-xbl.spamhaus.org
+{% else %}
+#postscreen_dnsbl_action       = enforce
+#postscreen_dnsbl_sites        = sbl-xbl.spamhaus.org
 {% endif %}
 # Post-220 Tests are intrusive, and force the client to reconnect
 #postscreen_pipelining_action = ignore
@@ -777,11 +780,11 @@ smtpd_data_restrictions = reject_unauth_pipelining
 # Similar to SMTPD Access Controls, these controls are applied to Mail User Agents (MUAs)
 # instead of Mail Exchange (MX) Relays.
 # See above for comments on the controls
-submissions_helo_restrictions = $smtpd_helo_restrictions
-submissions_sender_restrictions = $smtpd_sender_restrictions, reject_authenticated_sender_login_mismatch
-submissions_recipient_restrictions = $smtpd_recipient_restrictions
+submissions_helo_restrictions = reject_invalid_helo_hostname, reject_non_fqdn_helo_hostname
+submissions_sender_restrictions = reject_non_fqdn_sender, reject_unknown_sender_domain, reject_authenticated_sender_login_mismatch
+submissions_recipient_restrictions = reject_non_fqdn_recipient, reject_unknown_recipient_domain
 submissions_relay_restrictions = permit_tls_clientcerts, permit_sasl_authenticated, defer_unauth_destination
-submissions_data_restrictions = $smtpd_data_restrictions
+submissions_data_restrictions = reject_unauth_pipelining
 {% if true %}
 # submissions_tls_ask_ccert = yes
 # submissions_tls_CAfile =
@@ -844,12 +847,14 @@ smtpd_tls_dh1024_param_file   = {{ mail_postfix_tls_dh1024_param_file }}
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 
-{% if mail_postfix_tls_options is defined %}
 # Direct OpenSSL Options
 # Many OpenSSL options are exposed by Postfix configuration settings.
 # For those not exposed, they are listed in:
 # https://www.openssl.org/docs/manmaster/man3/SSL_CTX_set_options.html
+{% if mail_postfix_tls_options is defined %}
 tls_ssl_options = {{ mail_postfix_tls_options }}
+{% else %}
+# tls_ssl_options =
 {% endif %}
 
 # SMTP Server TLS Certificates
@@ -863,7 +868,7 @@ smtp_tls_chain_files =
     /etc/ssl/certs/ca-certificates.crt
 
 # TLS Other Options
-smtpd_tls_received_header = {{ mail_postfix_tls_received_header }}
+smtpd_tls_received_header = {{ "yes" if mail_postfix_tls_received_header else "no" }}
 smtp_tls_loglevel         = {{ mail_postfix_tls_debug_level }}
 smtpd_tls_loglevel        = {{ mail_postfix_tls_debug_level }}
 
@@ -906,7 +911,7 @@ smtpd_sasl_authenticated_header = yes
 # RSpamD Milters
 #
 # See https://www.postfix.org/MILTER_README.html
-milter_default_action = accept  # tempfail
+milter_default_action = accept
 smtpd_milters         = unix:private/rspamd-proxy.socket
 
 
