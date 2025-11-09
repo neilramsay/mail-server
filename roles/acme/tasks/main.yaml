@@ -17,117 +17,139 @@
           - boto3
       changed_when: false
 
-- name: Check AWS credentials
-  amazon.aws.aws_caller_info:
-    aws_access_key_id: "{{ aws_access_key_id }}"
-    aws_secret_access_key: "{{ aws_secret_access_key }}"
-    aws_session_token: "{{ aws_session_token }}"
-
-- name: Automatic Certificate Management Environment (ACME) Setup
+- name: Check for existing certificate
   become: true
   block:
-    - name: Create required directories
-      ansible.builtin.file:
-        path: "{{ acme_dir }}/{{ item }}"
-        owner: root
-        group: root
-        mode: u=rwx,g=rwx,o=rx
-        state: directory
-      with_items:
-        - account # ACME registrations
-        - archive  # All certs/chains/fullchains/privkeys
-        - csr      #
-        - keys     # ?
-        - live     # Symlinks to certs+keys
-        - live/{{ acme_hostname }}.{{ acme_dns_zone }}
-        - renewal  #
+    - name: Stat existing key
+      ansible.builtin.stat:
+        path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+      register: acme_cert_stat
 
-    - name: Generate Account Key
-      community.crypto.openssl_privatekey:
-        path: "{{ acme_account_key }}"
-        type: "{{ acme_key_type }}"
-
-    - name: Register Account
-      community.crypto.acme_account:
-        acme_version: "{{ acme_version }}"
-        acme_directory: "{{ acme_server_api }}"
-        account_key_src: "{{ acme_account_key }}"
-        state: present
-        terms_agreed: true
-        contact:
-          - "mailto:{{ acme_email }}"
-
-- name: Generate CSR
-  become: true
-  block:
-    - name: Generate Private Key
-      community.crypto.openssl_privatekey:
+    - name: Stat existing key
+      ansible.builtin.stat:
         path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
+      register: acme_key_stat
+
+    - name: Check existing cert is at least valid for a week
+      when: acme_cert_stat.stat.exists
+      community.crypto.x509_certificate_info:
+        path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+      register: acme_cert_check
+
+- name: Fetch new certificate
+  when: not acme_cert_stat.stat.exists or acme_cert_check.expired
+  block:
+    - name: Check AWS credentials
+      amazon.aws.aws_caller_info:
+        aws_access_key_id: "{{ aws_access_key_id }}"
+        aws_secret_access_key: "{{ aws_secret_access_key }}"
+        aws_session_token: "{{ aws_session_token }}"
+
+    - name: Automatic Certificate Management Environment (ACME) Setup
+      become: true
+      block:
+        - name: Create required directories
+          ansible.builtin.file:
+            path: "{{ acme_dir }}/{{ item }}"
+            owner: root
+            group: root
+            mode: u=rwx,g=rwx,o=rx
+            state: directory
+          with_items:
+            - account # ACME registrations
+            - archive  # All certs/chains/fullchains/privkeys
+            - csr      #
+            - keys     # ?
+            - live     # Symlinks to certs+keys
+            - live/{{ acme_hostname }}.{{ acme_dns_zone }}
+            - renewal  #
+
+        - name: Generate Account Key
+          community.crypto.openssl_privatekey:
+            path: "{{ acme_account_key }}"
+            type: "{{ acme_key_type }}"
+
+        - name: Register Account
+          community.crypto.acme_account:
+            acme_version: "{{ acme_version }}"
+            acme_directory: "{{ acme_server_api }}"
+            account_key_src: "{{ acme_account_key }}"
+            state: present
+            terms_agreed: true
+            contact:
+              - "mailto:{{ acme_email }}"
 
     - name: Generate CSR
-      community.crypto.openssl_csr:
-        path: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr" # should be serial #_csr-certbot.pem
-        privatekey_path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
-        common_name: "{{ acme_hostname }}.{{ acme_dns_zone }}"
-        subject_alt_name:
-          - "DNS:{{ acme_hostname }}.{{ acme_dns_zone }}"
+      become: true
+      block:
+        - name: Generate Private Key
+          community.crypto.openssl_privatekey:
+            path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
 
-- name: DNS Challenge
-  become: true
-  block:
-    - name: Create ACME Challenge
-      community.crypto.acme_certificate:
-        acme_version: "{{ acme_version }}"
-        acme_directory: "{{ acme_server_api }}"
-        account_key_src: "{{ acme_account_key }}"
-        challenge: "{{ acme_challenge_type }}"
-        profile: tlsserver
-        force: true # FORCE FORCE FORCE
-        csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
-        dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
-        chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
-        fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
-        remaining_days: 91
-      register: acme_certificate_challenge
+        - name: Generate CSR
+          community.crypto.openssl_csr:
+            path: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr" # should be serial #_csr-certbot.pem
+            privatekey_path: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/privkey.pem"
+            common_name: "{{ acme_hostname }}.{{ acme_dns_zone }}"
+            subject_alt_name:
+              - "DNS:{{ acme_hostname }}.{{ acme_dns_zone }}"
 
-    - name: Create Route53 Validation
-      vars:
-        full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
-      amazon.aws.route53:
-        aws_access_key_id: "{{ aws_access_key_id }}"
-        aws_secret_access_key: "{{ aws_secret_access_key }}"
-        aws_session_token: "{{ aws_session_token }}"
-        state: present
-        type: TXT
-        zone: "{{ acme_dns_zone }}"
-        record: "{{ acme_certificate_challenge.challenge_data[full_hostname]['dns-01']['record'] }}" # Generated
-        value: '"{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["resource_value"] }}"' # Generated
-        wait: true
+    - name: DNS Challenge
+      become: true
+      block:
+        - name: Create ACME Challenge
+          community.crypto.acme_certificate:
+            acme_version: "{{ acme_version }}"
+            acme_directory: "{{ acme_server_api }}"
+            account_key_src: "{{ acme_account_key }}"
+            challenge: "{{ acme_challenge_type }}"
+            profile: tlsserver
+            force: true # FORCE FORCE FORCE
+            csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+            dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+            chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
+            fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
+            remaining_days: 91
+          register: acme_certificate_challenge
 
-    - name: Validate ACME Challenge
-      community.crypto.acme_certificate:
-        acme_version: "{{ acme_version }}"
-        acme_directory: "{{ acme_server_api }}"
-        account_key_src: "{{ acme_account_key }}"
-        challenge: "{{ acme_challenge_type }}"
-        data: "{{ acme_certificate_challenge }}"
-        profile: tlsserver
-        force: true # FORCE FORCE FORCE
-        csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
-        dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
-        chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
-        fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
+        - name: Create Route53 Validation
+          vars:
+            full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
+          amazon.aws.route53:
+            aws_access_key_id: "{{ aws_access_key_id }}"
+            aws_secret_access_key: "{{ aws_secret_access_key }}"
+            aws_session_token: "{{ aws_session_token }}"
+            state: present
+            type: TXT
+            zone: "{{ acme_dns_zone }}"
+            record: "{{ acme_certificate_challenge.challenge_data[full_hostname]['dns-01']['record'] }}" # Generated
+            value: '"{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["resource_value"] }}"' # Generated
+            wait: true
 
-  always:
-    - name: Cleanup Route53 Challenge
-      vars:
-        full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
-      amazon.aws.route53:
-        aws_access_key_id: "{{ aws_access_key_id }}"
-        aws_secret_access_key: "{{ aws_secret_access_key }}"
-        aws_session_token: "{{ aws_session_token }}"
-        state: absent
-        type: TXT
-        zone: "{{ acme_dns_zone }}"
-        record: '{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["record"] }}' # Generated
-        wait: true
+        - name: Validate ACME Challenge
+          community.crypto.acme_certificate:
+            acme_version: "{{ acme_version }}"
+            acme_directory: "{{ acme_server_api }}"
+            account_key_src: "{{ acme_account_key }}"
+            challenge: "{{ acme_challenge_type }}"
+            data: "{{ acme_certificate_challenge }}"
+            profile: tlsserver
+            force: true # FORCE FORCE FORCE
+            csr: "{{ acme_dir }}/csr/{{ acme_hostname }}.{{ acme_dns_zone }}.csr"
+            dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/cert.pem"
+            chain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/chain.pem"
+            fullchain_dest: "{{ acme_dir }}/live/{{ acme_hostname }}.{{ acme_dns_zone }}/fullchain.pem"
+
+      always:
+        - name: Cleanup Route53 Challenge
+          vars:
+            full_hostname: "{{ acme_hostname }}.{{ acme_dns_zone }}"
+          amazon.aws.route53:
+            aws_access_key_id: "{{ aws_access_key_id }}"
+            aws_secret_access_key: "{{ aws_secret_access_key }}"
+            aws_session_token: "{{ aws_session_token }}"
+            state: absent
+            type: TXT
+            zone: "{{ acme_dns_zone }}"
+            record: '{{ acme_certificate_challenge.challenge_data[full_hostname]["dns-01"]["record"] }}' # Generated
+            wait: true
