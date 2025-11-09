@@ -859,8 +859,9 @@ tls_ssl_options = {{ mail_postfix_tls_options }}
 
 # SMTP Server TLS Certificates
 smtpd_tls_chain_files =
-    /etc/letsencrypt/live/examplehost.example.com/fullchain.pem,
-    /etc/letsencrypt/live/examplehost.example.com/privkey.pem,
+    /etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/cert.pem
+    /etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/chain.pem
+    /etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/privkey.pem
     /etc/ssl/certs/ca-certificates.crt
 
 # SMTP Client TLS CA Certificates
