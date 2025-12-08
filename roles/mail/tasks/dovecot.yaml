@@ -59,7 +59,7 @@
       - certbot
       - certonly
       - --non-interactive
-      - --dry-run
+      - --test-cert
       - --domain
       - "{{ mail_email_hostname }}.{{ mail_email_domain }}"
       - --dns-route53
