@@ -859,7 +859,7 @@ tls_ssl_options = {{ mail_postfix_tls_options }}
 
 # SMTP Server TLS Certificates
 smtpd_tls_chain_files =
-{% if mail_postfix_tls_cert is not null and mail_postfix_tls_key is not null %}
+{% if mail_postfix_tls_cert is not none and mail_postfix_tls_key is not none %}
     {{ mail_postfix_tls_cert }}
     {{ mail_postfix_tls_key }}
 {% elif mail_postfix_tls_letsencrypt %}
