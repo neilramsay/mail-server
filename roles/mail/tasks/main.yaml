@@ -1,12 +1,12 @@
 - name: Install Packages
   ansible.builtin.import_tasks: apt.yaml
 
-- name: Get certificate
-  ansible.builtin.import_role:
-    name: acme
-  vars:
-    acme_hostname: "{{ mail_email_hostname }}"
-    acme_dns_zone: "{{ mail_email_domain }}"
+# - name: Get certificate
+#   ansible.builtin.import_role:
+#     name: acme
+#   vars:
+#     acme_hostname: "{{ mail_email_hostname }}"
+#     acme_dns_zone: "{{ mail_email_domain }}"
     # - role: acme
     #   # aws_access_key_id: "{{ aws_access_key_id }}"
     #   # aws_secret_access_key: "{{ aws_secret_access_key }}"
@@ -15,12 +15,18 @@
 
 - name: RSpamd
   ansible.builtin.import_tasks: rspamd.yaml
+  tags:
+    - rspamd
 
 - name: Dovecot
   ansible.builtin.import_tasks: dovecot.yaml
+  tags:
+    - dovecot
 
 - name: Postfix
   ansible.builtin.import_tasks: postfix.yaml
+  tags:
+    - postfix
 
 - name: Update FirewallD
   ansible.builtin.import_tasks: firewalld.yaml

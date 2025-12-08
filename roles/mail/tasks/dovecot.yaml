@@ -51,4 +51,15 @@
     force: false
   notify: "mail : Restart Dovecot"
 
+- name: Create Dovecot TLS certificate
+  become: true
+  when: mail_dovecot_tls_letsencrypt
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - certonly
+      - --non-interactive
+      - --domain {{ mail_email_hostname }}.{{ mail_email_domain }}
+    creates: /etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/fullchain.pem
+
 # Consider making local.d and including from local.conf

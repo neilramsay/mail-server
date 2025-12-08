@@ -1,0 +1,27 @@
+- name: Apt
+  ansible.builtin.include_tasks: apt.yaml
+
+- name: Check for existing Account
+  become: true
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - show_account
+  register: certbot_show_account
+  changed_when: true
+
+- name: Register with LetsEncrypt
+  become: true
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - --agress-tos
+      - register
+      - --no-eff-email
+      - --register-unsafely-without-email
+      # TODO we should find a way to re-register
+      # --email
+      # "{{ certbot_email }}"
+  register: certbot_register
+  when: certbot_show_account.rc != 0
+  changed_when: certbot_register.rc != 0
