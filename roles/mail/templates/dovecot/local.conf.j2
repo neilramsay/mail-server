@@ -19,8 +19,8 @@ postmaster_address = postmaster@{{ mail_email_domain }}
 ssl_cert = <{{ mail_dovecot_tls_cert }}
 ssl_key = <{{ mail_dovecot_tls_key }}
 {% elif mail_dovecot_tls_letsencrypt is true %}
-ssl_cert = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/fullchain.pem
-ssl_key = </etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/privkey.pem
+ssl_cert = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/fullchain.pem
+ssl_key = </etc/letsencrypt/live/{{ mail_email_hostname }}.{{ mail_email_domain }}/privkey.pem
 {% else %}
 #ssl_cert = </etc/dovecot/private/dovecot.pem
 #ssl_key = </etc/dovecot/private/dovecot.key
