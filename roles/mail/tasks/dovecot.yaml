@@ -62,6 +62,8 @@
       - --dry-run
       - --domain
       - "{{ mail_email_hostname }}.{{ mail_email_domain }}"
+      - --dns-route53
+
     creates: /etc/letsencrypt/live/{{ mail_dovecot_tls_letsencrypt }}/fullchain.pem
 
 # Consider making local.d and including from local.conf
